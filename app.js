@@ -5,6 +5,7 @@ var app = require('express')();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var port = process.env.PORT || 8080;
+console.log('port = ' + port);
 app.listen(port);
 //
 var Point = require('./models/Point').PointModel;
@@ -22,6 +23,17 @@ app.get('/', function(req, res) {
         res.send('');
     });
 });
+
+//
+io.set('log level', 1);           // logging
+io.set('transports', [            // all transports (optional if you want flashsocket)
+        'websocket'
+        , 'flashsocket'
+        , 'htmlfile'
+        , 'xhr-polling'
+        , 'polling'
+]);
+io.set('origins', 'http://localhost:*');
 
 //
 io.on('connect', function (socket) {

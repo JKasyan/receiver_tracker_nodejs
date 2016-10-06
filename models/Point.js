@@ -8,11 +8,11 @@ mongoose.connect(dbURI);
 var db = mongoose.connection;
 
 db.on('error', function (err) {
-    log.error('connection error:', err.message);
+    console.error('connection error:', err.message);
 });
 
 db.once('open', function callback () {
-    log.info("Connected to DB!");
+    console.info("Connected to DB!");
 });
 
 var Schema = mongoose.Schema;

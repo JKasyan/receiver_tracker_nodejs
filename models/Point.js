@@ -1,10 +1,10 @@
 /**
  * Created by 1 on 10/6/2016.
  */
-var mongoose    = require('mongoose');
-var dbConnection = process.env.MONGOLAB_URI;
-console.log('dbConnection = ' + dbConnection);
-mongoose.connect(dbConnection);
+var mongoose = require('mongoose');
+var dbURI = process.env.MONGODB_URI;
+console.log('dbURI = ' + dbURI);
+mongoose.connect(dbURI);
 var db = mongoose.connection;
 
 db.on('error', function (err) {

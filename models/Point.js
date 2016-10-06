@@ -2,7 +2,7 @@
  * Created by 1 on 10/6/2016.
  */
 var mongoose    = require('mongoose');
-mongoose.connect('mongodb://localhost/test1');
+mongoose.connect(MONGODB_URI);
 var db = mongoose.connection;
 
 db.on('error', function (err) {

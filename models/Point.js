@@ -2,7 +2,9 @@
  * Created by 1 on 10/6/2016.
  */
 var mongoose    = require('mongoose');
-mongoose.connect(MONGODB_URI);
+var dbConnection = process.env.MONGOLAB_URI;
+console.log('dbConnection = ' + dbConnection);
+mongoose.connect(dbConnection);
 var db = mongoose.connection;
 
 db.on('error', function (err) {

@@ -2,9 +2,9 @@
  * Created by 1 on 10/6/2016.
  */
 var app = require('express')();
-var server = require('http').Server(app);
+var server = require('http').Server(app,  {origins: ''});
 var io = require('socket.io')(server);
-var port = process.env.PORT || 8080;
+var port = process.env.PORT || 9000;
 console.log('port = ' + port);
 app.listen(port);
 //
@@ -24,19 +24,9 @@ app.get('/', function(req, res) {
     });
 });
 
-/*
+
 //
-io.set('log level', 1);           // logging
-io.set('transports', [            // all transports (optional if you want flashsocket)
-        'websocket'
-        , 'flashsocket'
-        , 'htmlfile'
-        , 'xhr-polling'
-        , 'polling'
-]);
-io.set('origins', 'http://localhost:*');
-*/
-//
+io.set('origins', 'http://localhost:9000');
 io.on('connect', function (socket) {
 
     console.log(socket.id);

@@ -4,7 +4,7 @@
 var mongoose = require('mongoose');
 var dbURI = process.env.MONGODB_URI;
 console.log('dbURI = ' + dbURI);
-mongoose.connect(dbURI);
+mongoose.connect('mongodb://root:root@ds039165.mlab.com:39165/track');
 var db = mongoose.connection;
 
 db.on('error', function (err) {

@@ -11,7 +11,7 @@ app.listen(port);
 var Point = require('./models/Point').PointModel;
 
 app.get('/', function(req, res) {
-    console.log(io.sockets.adapter.rooms.length);
+    req.query.timestamp = req.query.timestamp * 1000;
     console.log(req.query);
     var point = new Point(req.query);
     point.save(function(err){
@@ -24,6 +24,7 @@ app.get('/', function(req, res) {
     });
 });
 
+/*
 //
 io.set('log level', 1);           // logging
 io.set('transports', [            // all transports (optional if you want flashsocket)
@@ -34,7 +35,7 @@ io.set('transports', [            // all transports (optional if you want flashs
         , 'polling'
 ]);
 io.set('origins', 'http://localhost:*');
-
+*/
 //
 io.on('connect', function (socket) {
 

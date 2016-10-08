@@ -36,7 +36,7 @@ var Point = require('./models/Point').PointModel;
 //
 app.get('/', function(req, res) {
     for(var key in req.query) {
-	console.log(key + ' === ' + classOf(key));
+	    console.log(key + ' === ' + classOf(key));
     }
     req.query.timestamp = req.query.timestamp * 1000;
     console.log(req.query);

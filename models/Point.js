@@ -19,14 +19,14 @@ var Schema = mongoose.Schema;
 
 var Point = new Schema({
     id: String,
-    lat: String,
-    lon: String,
-    timestamp: String,
-    speed: String,
-    bearing: String,
-    altitude: String,
-    batt: String
-});
+    lat: Number,
+    lon: Number,
+    timestamp: Number,
+    speed: Number,
+    bearing: Number,
+    altitude: Number,
+    batt: Number
+}, {collection: 'Point'});
 
 var PointModel = mongoose.model('Point', Point);
 module.exports.PointModel = PointModel;

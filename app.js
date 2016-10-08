@@ -35,6 +35,9 @@ app.use(cors({
 var Point = require('./models/Point').PointModel;
 //
 app.get('/', function(req, res) {
+    for(var key in req.query) {
+	console.log(key + ' === ' + classOf(key));
+    }
     req.query.timestamp = req.query.timestamp * 1000;
     console.log(req.query);
     var point = new Point(req.query);
@@ -64,5 +67,9 @@ io.on('connect', function (socket) {
     });
 
 });
+
+function classOf(obj) {
+    return Object.prototype.toString.call(obj).slice(8, -1);
+}
 
 server.listen(port);

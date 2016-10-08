@@ -4,7 +4,7 @@
 var mongoose = require('mongoose');
 var dbURI = process.env.MONGODB_URI;
 console.log('dbURI = ' + dbURI);
-mongoose.connect('mongodb://root:root@ds039165.mlab.com:39165/track');
+mongoose.connect(dbURI);
 var db = mongoose.connection;
 
 db.on('error', function (err) {
@@ -19,13 +19,13 @@ var Schema = mongoose.Schema;
 
 var Point = new Schema({
     id: String,
-    lat: Number,
-    lon: Number,
-    timestamp: Number,
-    speed: Number,
-    bearing: Number,
-    altitude: Number,
-    batt: Number
+    lat: String,
+    lon: String,
+    timestamp: String,
+    speed: String,
+    bearing: String,
+    altitude: String,
+    batt: String
 });
 
 var PointModel = mongoose.model('Point', Point);

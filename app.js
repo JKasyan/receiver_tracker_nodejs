@@ -38,7 +38,6 @@ app.get('/', function(req, res) {
     for(var key in req.query) {
 	    console.log(key + ' === ' + classOf(key));
     }
-    req.query.timestamp = req.query.timestamp * 1000;
     req.query.lng = req.query.lon;
     delete req.query.lon;
     console.log(req.query);

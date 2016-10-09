@@ -39,6 +39,8 @@ app.get('/', function(req, res) {
 	    console.log(key + ' === ' + classOf(key));
     }
     req.query.timestamp = req.query.timestamp * 1000;
+    req.query.lng = req.query.lon;
+    delete req.query.lon;
     console.log(req.query);
     var point = new Point(req.query);
     point.save(function(err){

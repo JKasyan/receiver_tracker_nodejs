@@ -20,7 +20,7 @@ var Schema = mongoose.Schema;
 var Point = new Schema({
     id: String,
     lat: Number,
-    lon: Number,
+    lng: Number,
     timestamp: Number,
     speed: Number,
     bearing: Number,

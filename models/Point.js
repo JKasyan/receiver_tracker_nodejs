@@ -26,7 +26,7 @@ var Point = new Schema({
     bearing: Number,
     altitude: Number,
     batt: Number
-}, {collection: 'Point'});
+}, {collection: 'Point', versionKey: false});
 
 var PointModel = mongoose.model('Point', Point);
 module.exports.PointModel = PointModel;

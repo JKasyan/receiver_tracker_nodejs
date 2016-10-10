@@ -1,7 +1,9 @@
-Module save gps data in mongo db.
+# receiver_tracker_nodejs
+Module saves gps data in mongo db.
 After success saving in db server broacasts
 gps data for all subscribed users.
 
-Install:
+# Run:
+ - git clone https://github.com/JKasyan/receiver_tracker_nodejs.git
  - npm install
- - add enviroment varibale 'MONGODB_URI' (mongodb://user:password@host:port/dbName) 
+ - MONGODB_URI=mongodb://user:password@host:port/dbName node app.js

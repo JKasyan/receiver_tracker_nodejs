@@ -7,6 +7,7 @@ gps data for all subscribed users.
  - Node.js
  - Express.js
  - Socket.io
+ - Mongoose
 
 # Run:
  - git clone https://github.com/JKasyan/receiver_tracker_nodejs.git

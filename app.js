@@ -36,11 +36,10 @@ app.use(cors({
 var Point = require('./models/Models').PointModel;
 //
 app.get('/', function(req, res) {
-    for(var key in req.query) {
-	    console.log(key + ' === ' + classOf(key));
-    }
     req.query.lng = req.query.lon;
+    req.query.gadgetNumber = req.query.id;
     delete req.query.lon;
+    delete req.query.id;
     console.log(req.query);
     var point = new Point(req.query);
     point.save(function(err){

@@ -6,6 +6,7 @@ var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var port = process.env.PORT || 9000;
 var cors = require('cors');
+var redisClient = require('./routes/redisClient');
 //
 console.log('port = ' + port);
 //
@@ -32,7 +33,7 @@ app.use(cors({
   allowedHeaders: ['Content-Type']
 }));
 //
-var Point = require('./models/Point').PointModel;
+var Point = require('./models/Models').PointModel;
 //
 app.get('/', function(req, res) {
     for(var key in req.query) {
@@ -74,3 +75,28 @@ function classOf(obj) {
 }
 
 server.listen(port);
+
+var Gadget = require('./models/Models').GadgetModel;
+var User = require('./models/Models').UserModel;
+
+function initCache() {
+    User.where('enabled')
+        .eq(true)
+        .select({email:1,gadgetIds:1})
+        .exec(function(err, data) {
+            if(err) throw err;
+            var gadgetInfo = [];
+            console.log('Number of users = ', data.length);
+            data.forEach(function(user) {
+                for(var i = 0; i <user.gadgetIds.length;i++) {
+                    gadgetInfo.push(user.gadgetIds[i]);
+                    gadgetInfo.push(user.email);
+                }
+            });
+            redisClient.initUsersData(gadgetInfo);
+        });
+}
+
+function initLastActivity() {
+
+}

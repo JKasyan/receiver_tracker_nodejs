@@ -30,3 +30,35 @@ var Point = new Schema({
 
 var PointModel = mongoose.model('Point', Point);
 module.exports.PointModel = PointModel;
+
+/**
+ *
+ */
+
+var Gadget = new Schema({
+    id:String,
+    userId:String,
+    title:String,
+    number:String
+}, {collection: 'Gadget', versionKey: false});
+
+var GadgetModel = mongoose.model('Gadget', Gadget);
+
+module.exports.GadgetModel = GadgetModel;
+
+/**
+ *
+ */
+
+var User = new Schema({
+    id:String,
+    firstName:String,
+    secondName:String,
+    email:String,
+    enabled:Boolean,
+    gadgetIds:Array
+}, {collection: 'User', versionKey: false});
+
+var UserModel = mongoose.model('User', User);
+
+module.exports.UserModel = UserModel;

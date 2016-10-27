@@ -13,11 +13,7 @@ client.auth(pass, function(err) {
 });
 
 exports.saveLastActivity = function(key, timestamp) {
-    return function(req, res, next) {
-        console.log('key = ', key, ', value = ', value);
-        client.set(key, timestamp, redis.print);
-        next(req, res);
-    }
+    client.set(key, timestamp, redis.print);
 }
 
 exports.saveUsersData = function(data) {
@@ -33,4 +29,13 @@ exports.initUsersData = function(data) {
 
 exports.initLastActivity = function (data) {
     client.mset(data, redis.print);
+}
+
+exports.checkGadget = function(id) {
+    return function(next) {
+        client.exists(id, function(err, result) {
+            if(err) throw err;
+            next();
+        })
+    }
 }

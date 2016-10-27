@@ -38,6 +38,7 @@ app.use(cors({
   methods: ['GET', 'OPTIONS'],
   allowedHeaders: ['Content-Type']
 }));
+app.use(checkIdGadget);
 //
 app.get('/', function(req, res) {
     req.query.lng = req.query.lon;
@@ -53,9 +54,9 @@ app.get('/', function(req, res) {
             console.log(io.sockets.adapter.rooms[gadgetNumber]);
             io.to(gadgetNumber).emit('gpsData', req.query);
         }
-        if(query.timestamp) {
+        if(req.query.timestamp) {
             var keyLastActivity = gadgetNumber + ':lastActivity';
-            redisClient.saveLastActivity(keyLastActivity, query.timestamp);
+            redisClient.saveLastActivity(keyLastActivity, req.query.timestamp);
         }
         res.send('');
     });
@@ -133,4 +134,10 @@ function initLastActivity() {
             }
         });
     });
+}
+
+function checkIdGadget(req, res, next) {
+    var idGadget = req.query.id;
+    console.log('idGadget = ', idGadget);
+    redisClient.checkGadget(idGadget)(next);
 }

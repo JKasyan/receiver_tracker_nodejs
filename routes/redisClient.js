@@ -8,13 +8,14 @@ var pass = process.env.REDIS_PASS;
 var client = redis.createClient(port, host);
 
 client.auth(pass, function(err) {
-    console.log(err);
+    if(err) throw err;
+    console.log('Success connected to redis!');
 });
 
-exports.saveActivity = function(key, value) {
+exports.saveLastActivity = function(key, timestamp) {
     return function(req, res, next) {
         console.log('key = ', key, ', value = ', value);
-        client.set(key, value, redis.print);
+        client.set(key, timestamp, redis.print);
         next(req, res);
     }
 }
@@ -27,6 +28,9 @@ exports.saveUsersData = function(data) {
 }
 
 exports.initUsersData = function(data) {
-    console.log(data);
+    client.mset(data, redis.print);
+}
+
+exports.initLastActivity = function (data) {
     client.mset(data, redis.print);
 }

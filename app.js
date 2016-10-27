@@ -8,7 +8,13 @@ var port = process.env.PORT || 9000;
 var cors = require('cors');
 var redisClient = require('./routes/redisClient');
 //
+var Gadget = require('./models/Models').GadgetModel;
+var User = require('./models/Models').UserModel;
+var Point = require('./models/Models').PointModel;
+//
 console.log('port = ' + port);
+initCache();
+initLastActivity();
 //
 var allowCrossDomain = function(req, res, next) {
     console.log('Headers...');
@@ -33,8 +39,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type']
 }));
 //
-var Point = require('./models/Models').PointModel;
-//
 app.get('/', function(req, res) {
     req.query.lng = req.query.lon;
     req.query.gadgetNumber = req.query.id;
@@ -44,10 +48,14 @@ app.get('/', function(req, res) {
     var point = new Point(req.query);
     point.save(function(err){
         if(err) throw err;
-        var id = req.query.id;
-        if(io.sockets.adapter.rooms[id]) {
-            console.log(io.sockets.adapter.rooms[id]);
-            io.to(id).emit('gpsData', req.query);
+        var gadgetNumber = req.query.gadgetNumber;
+        if(io.sockets.adapter.rooms[gadgetNumber]) {
+            console.log(io.sockets.adapter.rooms[gadgetNumber]);
+            io.to(gadgetNumber).emit('gpsData', req.query);
+        }
+        if(query.timestamp) {
+            var keyLastActivity = gadgetNumber + ':lastActivity';
+            redisClient.saveLastActivity(keyLastActivity, query.timestamp);
         }
         res.send('');
     });
@@ -69,14 +77,9 @@ io.on('connect', function (socket) {
 
 });
 
-function classOf(obj) {
-    return Object.prototype.toString.call(obj).slice(8, -1);
-}
-
 server.listen(port);
 
-var Gadget = require('./models/Models').GadgetModel;
-var User = require('./models/Models').UserModel;
+
 
 function initCache() {
     User.where('enabled')
@@ -92,10 +95,42 @@ function initCache() {
                     gadgetInfo.push(user.email);
                 }
             });
+            console.log(gadgetInfo);
             redisClient.initUsersData(gadgetInfo);
         });
 }
 
 function initLastActivity() {
-
+    var gadgetsIds = [];
+    var lastActivity = [];
+    Gadget.find(function (err, gadgets) {
+        if(err) throw err;
+        console.log('Gadgets size = ', gadgets.length);
+        gadgets.forEach(function (gadget) {
+            gadgetsIds.push(gadget._id.toString());
+        });
+        Point.aggregate([
+            {$match:{
+                $and:[
+                    {gadgetNumber:{$exists:true}},
+                    {gadgetNumber:{$in:gadgetsIds}}
+                ]
+            }},
+            {$group:{
+                _id:"$gadgetNumber",
+                lastActivity: {$max:"$timestamp"}
+            }}
+        ], function (err, res) {
+            if(err) throw err;
+            console.log('Last activity = ', res);
+            res.forEach(function (aggregation) {
+                lastActivity.push(aggregation._id + ':lastActivity');
+                lastActivity.push(aggregation.lastActivity);
+            });
+            if(lastActivity.length) {
+                console.log('Last activity array format = ', lastActivity);
+                redisClient.initLastActivity(lastActivity);
+            }
+        });
+    });
 }

@@ -9,10 +9,6 @@ client.auth(pass, function(err) {
     console.log('Success connected to redis!');
 });
 
-client.set('one', 1, function(err, res) {
-    console.log(err, ' ', res);
-});
-
-client.exists('one', function (err, res) {
+client.get('580e2049dcba0f042d5dedea:lastActivity', function (err, res) {
     console.log(res)
 });

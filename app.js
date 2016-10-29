@@ -125,6 +125,7 @@ function initLastActivity() {
             if(err) throw err;
             console.log('Last activity = ', res);
             res.forEach(function (aggregation) {
+                console.log('Last activity = ', aggregation._id, ', date = ', new Date(aggregation.timestamp*1000));
                 lastActivity.push(aggregation._id + ':lastActivity');
                 lastActivity.push(aggregation.lastActivity);
             });

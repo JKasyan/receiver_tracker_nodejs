@@ -11,9 +11,15 @@ Point.aggregate([
     {$project:
         {lat: 1, lng: 1, timestamp: 1, gadgetNumber: 1}
     },
+    {$sort:
+        {timestamp:-1}
+    },
     {
         $match: {
-            gadgetNumber: {$exists: true}
+            $and:[
+                {gadgetNumber:{$exists:true}},
+                {gadgetNumber:{$in:['580e2049dcba0f042d5dedea', '916584']}}
+            ]
         }
     },
     {
@@ -27,9 +33,17 @@ Point.aggregate([
                 $first: "$lng"
             }
         }
+    },
+    {
+        $lookup: {
+            from: "Gadget",
+            localField: "id",
+            foreignField: "id",
+            as: "gadget"
+        }
     }
 ], function (err, res) {
-    console.log(res);
+    console.log(res[0].gadget);
 });
 
 /*Gadget.find(function (err, gadgets) {

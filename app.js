@@ -38,7 +38,7 @@ app.use(cors({
   methods: ['GET', 'OPTIONS'],
   allowedHeaders: ['Content-Type']
 }));
-app.use(checkIdGadget);
+//app.use(checkIdGadget);
 //
 app.get('/', function(req, res) {
     req.query.lng = req.query.lon;
@@ -107,20 +107,39 @@ function initLastActivity() {
     Gadget.find(function (err, gadgets) {
         if(err) throw err;
         console.log('Gadgets size = ', gadgets.length);
-        gadgets.forEach(function (gadget) {
-            gadgetsIds.push(gadget._id.toString());
+        gadgetsIds = gadgets.map(function(gadget) {
+            return gadget._id.toString();
         });
+        //gadgets.forEach(function (gadget) {
+        //    gadgetsIds.push(gadget._id.toString());
+        //});
         Point.aggregate([
-            {$match:{
-                $and:[
-                    {gadgetNumber:{$exists:true}},
-                    {gadgetNumber:{$in:gadgetsIds}}
-                ]
-            }},
-            {$group:{
-                _id:"$gadgetNumber",
-                lastActivity: {$max:"$timestamp"}
-            }}
+            {
+                $project: {lat: 1, lng: 1, timestamp: 1, gadgetNumber: 1}
+            },
+            {
+                $sort: {timestamp: -1}
+            },
+            {
+                $match: {
+                    $and: [
+                        {gadgetNumber: {$exists: true}},
+                        {gadgetNumber: {$in: gadgetsIds}}
+                    ]
+                }
+            },
+            {
+                $group: {
+                    _id: "$gadgetNumber",
+                    lastActivity: {$max: "$timestamp"},
+                    lat: {
+                        $first:"$lat"
+                    },
+                    lng: {
+                        $first: "$lng"
+                    }
+                }
+            }
         ], function (err, res) {
             if(err) throw err;
             console.log('Last activity = ', res);

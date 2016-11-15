@@ -35,6 +35,7 @@ exports.checkGadget = function(id) {
     return function(next) {
         client.exists(id, function(err, result) {
             if(err) throw err;
+            if(!result) return;
             next();
         })
     }

@@ -7,7 +7,32 @@ var Gadget  = models.GadgetModel;
 var Point = models.PointModel;
 var gadgetsIds = [];
 
-Gadget.find(function (err, gadgets) {
+Point.aggregate([
+    {$project:
+        {lat: 1, lng: 1, timestamp: 1, gadgetNumber: 1}
+    },
+    {
+        $match: {
+            gadgetNumber: {$exists: true}
+        }
+    },
+    {
+        $group: {
+            _id: "$gadgetNumber",
+            lastActivity: {$max: "$timestamp"},
+            lat: {
+                $first:"$lat"
+            },
+            lng: {
+                $first: "$lng"
+            }
+        }
+    }
+], function (err, res) {
+    console.log(res);
+});
+
+/*Gadget.find(function (err, gadgets) {
     if(err) throw err;
     console.log('Gadgets size = ', gadgets.length);
     gadgets.forEach(function (gadget) {
@@ -15,6 +40,7 @@ Gadget.find(function (err, gadgets) {
     });
     console.log(util.classOf(gadgetsIds[0]));
     Point.aggregate([
+        /!*{$project:{lat:1, lng:1, timestamp:1}},*!/
         {$match:{
             $and:[
                 {gadgetNumber:{$exists:true}},
@@ -29,4 +55,10 @@ Gadget.find(function (err, gadgets) {
         if(err) throw err;
         console.log(res);
     });
-});
+});*/
+
+/*
+Point.count({lng:50}, function (err, result) {
+    if(err) throw err;
+    console.log('Point = ', result);
+});*/

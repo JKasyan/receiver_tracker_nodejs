@@ -5,6 +5,7 @@ var models = require('./models/Models')
 var util = require('./lib/util')
 var Gadget  = models.GadgetModel;
 var Point = models.PointModel;
+var User = models.UserModel;
 var gadgetsIds = [];
 
 Point.aggregate([
@@ -18,7 +19,7 @@ Point.aggregate([
         $match: {
             $and:[
                 {gadgetNumber:{$exists:true}},
-                {gadgetNumber:{$in:['580e2049dcba0f042d5dedea', '916584']}}
+                {gadgetNumber:{$in:['8suN8drTx6rSksqN5lDL', 'Mk73RNfJzIkhRduxisit']}}
             ]
         }
     },
@@ -37,42 +38,56 @@ Point.aggregate([
     {
         $lookup: {
             from: "Gadget",
-            localField: "id",
-            foreignField: "id",
-            as: "gadget"
+            localField: "_id",
+            foreignField: "number",
+            as: "gadgets"
         }
     }
 ], function (err, res) {
-    console.log(res[0].gadget);
+    res.forEach(function (el) {
+        console.log(el);
+        console.log('<<<<<<<<<<<<<<<<<< >>>>>>>>>>>>>>>>>>>>>')
+    });
 });
 
-/*Gadget.find(function (err, gadgets) {
-    if(err) throw err;
-    console.log('Gadgets size = ', gadgets.length);
-    gadgets.forEach(function (gadget) {
-        gadgetsIds.push(gadget._id.toString());
-    });
-    console.log(util.classOf(gadgetsIds[0]));
-    Point.aggregate([
-        /!*{$project:{lat:1, lng:1, timestamp:1}},*!/
-        {$match:{
-            $and:[
-                {gadgetNumber:{$exists:true}},
-                {gadgetNumber:{$in:gadgetsIds}}
-            ]
-        }},
-        {$group:{
-            _id:"$gadgetNumber",
-            lastActivity: {$max:"$timestamp"}
-        }}
-    ], function (err, res) {
-        if(err) throw err;
-        console.log(res);
-    });
+/*Point.aggregate([
+    {
+        $project:{
+            lat: 1, lng: 1, gadgetNumber: 1, timestamp: 1
+        }
+    },
+    {
+        $limit: 1
+    },
+    {
+        $lookup: {
+            from: "Gadget",
+            localField: "gadgetNumber",
+            foreignField: "number",
+            as: "gadgets"
+        }
+    }
+], function(err,res){
+    console.log(res[0].gadgets);
 });*/
 
+//582c3724dcba0f510dd56504  ->  Mk73RNfJzIkhRduxisit
+//580e2049dcba0f042d5dedea  ->  8suN8drTx6rSksqN5lDL
 /*
-Point.count({lng:50}, function (err, result) {
-    if(err) throw err;
-    console.log('Point = ', result);
-});*/
+Point.update(
+    {
+        gadgetNumber: "582c3724dcba0f510dd56504"
+    },
+    {
+        $set: {
+            gadgetNumber: "Mk73RNfJzIkhRduxisit"
+        }
+    },
+    {
+        multi:true
+    },
+    function (err, res) {
+        if (err) throw err;
+        console.log(res);
+    }
+);*/

@@ -40,8 +40,11 @@ Point.aggregate([
             from: "Gadget",
             localField: "_id",
             foreignField: "number",
-            as: "gadgets"
+            as: "gadget"
         }
+    },
+    {
+        $unwind: "$gadget"
     }
 ], function (err, res) {
     res.forEach(function (el) {

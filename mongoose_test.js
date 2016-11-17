@@ -50,27 +50,6 @@ Point.aggregate([
     });
 });
 
-/*Point.aggregate([
-    {
-        $project:{
-            lat: 1, lng: 1, gadgetNumber: 1, timestamp: 1
-        }
-    },
-    {
-        $limit: 1
-    },
-    {
-        $lookup: {
-            from: "Gadget",
-            localField: "gadgetNumber",
-            foreignField: "number",
-            as: "gadgets"
-        }
-    }
-], function(err,res){
-    console.log(res[0].gadgets);
-});*/
-
 //582c3724dcba0f510dd56504  ->  Mk73RNfJzIkhRduxisit
 //580e2049dcba0f042d5dedea  ->  8suN8drTx6rSksqN5lDL
 /*

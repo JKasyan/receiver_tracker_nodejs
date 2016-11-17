@@ -6,15 +6,25 @@ var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var port = process.env.PORT || 9000;
 var cors = require('cors');
-var redisClient = require('./routes/redisClient');
 //
 var Gadget = require('./models/Models').GadgetModel;
 var User = require('./models/Models').UserModel;
 var Point = require('./models/Models').PointModel;
+var Track = require('./models/Models').TrackModel;
+//
+var redis = require('redis');
+var redisPort = process.env.REDIS_PORT;
+var redisHost = process.env.REDIS_HOST;
+var pass = process.env.REDIS_PASS;
+var clientRedis = redis.createClient(redisPort, redisHost);
+
+clientRedis.auth(pass, function(err) {
+    if(err) throw err;
+    console.log('Success connected to redis!');
+});
 //
 console.log('port = ' + port);
 initCache();
-initLastActivity();
 //
 var allowCrossDomain = function(req, res, next) {
     console.log('Headers...');
@@ -38,28 +48,80 @@ app.use(cors({
   methods: ['GET', 'OPTIONS'],
   allowedHeaders: ['Content-Type']
 }));
-//app.use(checkIdGadget);
 //
 app.get('/', function(req, res) {
-    req.query.lng = req.query.lon;
-    req.query.gadgetNumber = req.query.id;
-    delete req.query.lon;
-    delete req.query.id;
-    console.log(req.query);
-    var point = new Point(req.query);
-    point.save(function(err){
-        if(err) throw err;
-        var gadgetNumber = req.query.gadgetNumber;
-        if(io.sockets.adapter.rooms[gadgetNumber]) {
-            console.log(io.sockets.adapter.rooms[gadgetNumber]);
-            io.to(gadgetNumber).emit('gpsData', req.query);
-        }
-        if(req.query.timestamp) {
-            var keyLastActivity = gadgetNumber + ':lastActivity';
-            redisClient.saveLastActivity(keyLastActivity, req.query.timestamp);
-        }
-        res.send('');
-    });
+    if(req.query.id) {
+        clientRedis.exists(req.query.id, function (err, result) {
+            if(err) throw err;
+            console.log(req.query.id, ' is exists  = ', Boolean(result));
+            if(!result) {
+                res.status(500).send('');
+                return;
+            }
+            req.query.lng = req.query.lon;
+            req.query.gadgetNumber = req.query.id;
+            delete req.query.lon;
+            delete req.query.id;
+            console.log('query data = ',req.query);
+            //
+            var data = req.query;
+            var key = data.gadgetNumber + ':track';
+            clientRedis.hgetall(key, function (err, lastActivityData) {
+                if(lastActivityData && lastActivityData.isActive) {
+                    if(req.query.timestamp - lastActivityData.timestamp > 3600 * 10) {
+                        //
+                        var trackFinish = {
+                            id:lastActivityData.id,
+                            finish:{
+                                lat:data.lat,
+                                lng:data.lng,
+                                time:data.timestamp},
+                            active:false
+                        };
+                        Track.findOneAndUpdate({id:lastActivityData.id}, trackFinish, {upsert:true}, function (err, result) {
+                            if(err) throw err;
+                            console.log('Success finish track')
+                        });
+                        clientRedis.hdel(key, function (err, res) {
+                            if(err) throw err;
+                            console.log('Success delete track from cache = ', res);
+                        })
+                    } else {
+
+                    }
+                } else {
+                    //begin of track
+                    var track = new Track({
+                        begin:{
+                            lat:data.lat,
+                            lng:data.lng,
+                            time:data.timestamp},
+                        active:true
+                    });
+                    track.save(function (err, res) {
+                        if(err) throw err;
+                        console.log('Save begin track = ', res.id);
+                        var beginTrackData = ['isActive', true, 'timestamp', data.timestamp, 'id', res.id, 'lat', data.lat, 'lng', data.lng];
+                        clientRedis.hmset(key, beginTrackData, function (err, resultSaving) {
+                            //
+                        });
+                    });
+                }
+            });
+            var point = new Point(req.query);
+            point.save(function(err){
+                if(err) throw err;
+                var gadgetNumber = req.query.gadgetNumber;
+                if(io.sockets.adapter.rooms[gadgetNumber]) {
+                    console.log(io.sockets.adapter.rooms[gadgetNumber]);
+                    io.to(gadgetNumber).emit('gpsData', req.query);
+                }
+                res.send('');
+            });
+        });
+    } else {
+        res.status(500).send('');
+    }
 });
 //
 io.on('connect', function (socket) {
@@ -81,7 +143,6 @@ io.on('connect', function (socket) {
 server.listen(port);
 
 
-
 function initCache() {
     User.where('enabled')
         .eq(true)
@@ -97,67 +158,6 @@ function initCache() {
                 }
             });
             console.log(gadgetInfo);
-            redisClient.initUsersData(gadgetInfo);
+            clientRedis.mset(data, redis.print);
         });
-}
-
-function initLastActivity() {
-    var gadgetsIds = [];
-    var lastActivity = [];
-    Gadget.find(function (err, gadgets) {
-        if(err) throw err;
-        console.log('Gadgets size = ', gadgets.length);
-        gadgetsIds = gadgets.map(function(gadget) {
-            return gadget._id.toString();
-        });
-        //gadgets.forEach(function (gadget) {
-        //    gadgetsIds.push(gadget._id.toString());
-        //});
-        Point.aggregate([
-            {
-                $project: {lat: 1, lng: 1, timestamp: 1, gadgetNumber: 1}
-            },
-            {
-                $sort: {timestamp: -1}
-            },
-            {
-                $match: {
-                    $and: [
-                        {gadgetNumber: {$exists: true}},
-                        {gadgetNumber: {$in: gadgetsIds}}
-                    ]
-                }
-            },
-            {
-                $group: {
-                    _id: "$gadgetNumber",
-                    lastActivity: {$max: "$timestamp"},
-                    lat: {
-                        $first:"$lat"
-                    },
-                    lng: {
-                        $first: "$lng"
-                    }
-                }
-            }
-        ], function (err, res) {
-            if(err) throw err;
-            console.log('Last activity = ', res);
-            res.forEach(function (aggregation) {
-                console.log('Last activity = ', aggregation._id, ', date = ', new Date(aggregation.lastActivity*1000));
-                lastActivity.push(aggregation._id + ':lastActivity');
-                lastActivity.push(aggregation.lastActivity);
-            });
-            if(lastActivity.length) {
-                console.log('Last activity array format = ', lastActivity);
-                redisClient.initLastActivity(lastActivity);
-            }
-        });
-    });
-}
-
-function checkIdGadget(req, res, next) {
-    var idGadget = req.query.id;
-    console.log('idGadget = ', idGadget);
-    redisClient.checkGadget(idGadget)(next);
 }

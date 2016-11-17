@@ -63,3 +63,22 @@ var User = new Schema({
 var UserModel = mongoose.model('User', User);
 
 module.exports.UserModel = UserModel;
+
+var Track = new Schema({
+    id: String,
+    begin: {
+        lat:Number,
+        lng:Number,
+        time:Number
+    },
+    finish: {
+        lat:Number,
+        lng:Number,
+        time:Number
+    },
+    active: Boolean
+}, {collection: 'Track', versionKey: false});
+
+var TrackModel = mongoose.model('Track', Track);
+
+module.exports.TrackModel = TrackModel;

@@ -9,6 +9,23 @@ client.auth(pass, function(err) {
     console.log('Success connected to redis!');
 });
 
-client.get('580e2049dcba0f042d5dedea:lastActivity', function (err, res) {
-    console.log(res)
+client.hgetall('8suN8drTx6rSksqN5lDL:track', function(err, res) {
+    if(err) throw err;
+    console.log('2 = ', res);
+})
+
+client.hset(['8suN8drTx6rSksqN5lDL:track', 'isActive', false], function (err, res) {
+    if(err) throw err;
+    console.log('0 = ', res);
+    client.hdel(['8suN8drTx6rSksqN5lDL:track', 'id', 'active'], function(err, res) {
+        console.log('1 = ', res);
+        client.hgetall('8suN8drTx6rSksqN5lDL:track', function(err, res) {
+            if(err) throw err;
+            console.log('2 = ', res);
+        })
+    })
 });
+
+client.hkeys('8suN8drTx6rSksqN5lDL:track', function(err, res) {
+    console.log('3 = ',res);
+})

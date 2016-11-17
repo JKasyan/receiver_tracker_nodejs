@@ -66,12 +66,14 @@ app.get('/', function(req, res) {
             //
             var data = req.query;
             var key = data.gadgetNumber + ':track';
+            console.log('key = ', key);
             clientRedis.hgetall(key, function (err, lastActivityData) {
-                if(lastActivityData && lastActivityData.isActive) {
-                    if(req.query.timestamp - lastActivityData.timestamp > 3600 * 10) {
+                console.log('lastActivityData = ', lastActivityData);
+                if(lastActivityData && JSON.parse(lastActivityData.isActive)) {
+                    if(data.timestamp - lastActivityData.timestamp > 60 * 10) {
                         //
                         var trackFinish = {
-                            id:lastActivityData.id,
+                            id:lastActivityData.gadgetNumber,
                             finish:{
                                 lat:data.lat,
                                 lng:data.lng,
@@ -80,14 +82,18 @@ app.get('/', function(req, res) {
                         };
                         Track.findOneAndUpdate({id:lastActivityData.id}, trackFinish, {upsert:true}, function (err, result) {
                             if(err) throw err;
-                            console.log('Success finish track')
+                            console.log('Success finish track = ', result);
                         });
-                        clientRedis.hdel(key, function (err, res) {
+                        clientRedis.hset([key, 'isActive', false], function (err, res) {
                             if(err) throw err;
                             console.log('Success delete track from cache = ', res);
-                        })
+                        });
                     } else {
-
+                        //
+                        clientRedis.hmset([key, 'timestamp', data.timestamp], function(err, res) {
+                            if(err) throw err;
+                            console.log('Update redis data = ', res);
+                        });
                     }
                 } else {
                     //begin of track
@@ -98,11 +104,12 @@ app.get('/', function(req, res) {
                             time:data.timestamp},
                         active:true
                     });
-                    track.save(function (err, res) {
+                    track.save(function (err, tr) {
                         if(err) throw err;
-                        console.log('Save begin track = ', res.id);
-                        var beginTrackData = ['isActive', true, 'timestamp', data.timestamp, 'id', res.id, 'lat', data.lat, 'lng', data.lng];
+                        console.log('Save begin track = ', tr._id);
+                        var beginTrackData = ['isActive', true, 'timestamp', data.timestamp, 'id', tr._id];
                         clientRedis.hmset(key, beginTrackData, function (err, resultSaving) {
+                            console.log('resultSaving = ', resultSaving);
                             //
                         });
                     });
@@ -157,7 +164,10 @@ function initCache() {
                     gadgetInfo.push(user.email);
                 }
             });
-            console.log(gadgetInfo);
-            clientRedis.mset(data, redis.print);
+            console.log('gadgetInfo = ', gadgetInfo);
+            clientRedis.mset(gadgetInfo, function(err, res) {
+                if(err) throw err;
+                console.log('Success save cache = ', res)
+            });
         });
 }

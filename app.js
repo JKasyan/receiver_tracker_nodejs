@@ -26,6 +26,13 @@ clientRedis.auth(pass, function(err) {
 console.log('port = ' + port);
 initCache();
 //
+var Stomp = require('stomp-client');
+var destination = '/queue/queue1';
+var activeMQClient = new Stomp('127.0.0.1', 61613/*, 'user', 'pass'*/);
+activeMQClient.connect(function (sessionId) {
+    console.log('Connected to queue = ', sessionId);
+});
+//
 var allowCrossDomain = function(req, res, next) {
     console.log('Headers...');
     res.header('Access-Control-Allow-Origin', 'http://obscure-thicket-55734.herokuapp.com');
@@ -65,6 +72,9 @@ app.get('/', function(req, res) {
             console.log('query data = ',req.query);
             //
             var data = req.query;
+            //
+            activeMQClient.publish(destination, JSON.stringify(data));
+            //
             var key = data.gadgetNumber + ':track';
             console.log('key = ', key);
             clientRedis.hgetall(key, function (err, lastActivityData) {

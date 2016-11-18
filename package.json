@@ -6,6 +6,7 @@
     "express": "^4.14.0",
     "mongoose": "^4.6.3",
     "redis": "^2.6.2",
-    "socket.io": "1.0.4"
+    "socket.io": "1.0.4",
+    "stomp-client": "^0.8.1"
   }
 }

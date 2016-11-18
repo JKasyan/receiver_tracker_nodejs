@@ -64,57 +64,6 @@ app.get('/', function(req, res) {
             delete req.query.id;
             console.log('query data = ',req.query);
             //
-            var data = req.query;
-            var key = data.gadgetNumber + ':track';
-            console.log('key = ', key);
-            clientRedis.hgetall(key, function (err, lastActivityData) {
-                console.log('lastActivityData = ', lastActivityData);
-                if(lastActivityData && JSON.parse(lastActivityData.isActive)) {
-                    if(data.timestamp - lastActivityData.timestamp > 60 * 10) {
-                        //
-                        var trackFinish = {
-                            id:lastActivityData.gadgetNumber,
-                            finish:{
-                                lat:data.lat,
-                                lng:data.lng,
-                                time:data.timestamp},
-                            active:false
-                        };
-                        Track.findOneAndUpdate({id:lastActivityData.id}, trackFinish, {upsert:true}, function (err, result) {
-                            if(err) throw err;
-                            console.log('Success finish track = ', result);
-                        });
-                        clientRedis.hset([key, 'isActive', false], function (err, res) {
-                            if(err) throw err;
-                            console.log('Success delete track from cache = ', res);
-                        });
-                    } else {
-                        //
-                        clientRedis.hmset([key, 'timestamp', data.timestamp], function(err, res) {
-                            if(err) throw err;
-                            console.log('Update redis data = ', res);
-                        });
-                    }
-                } else {
-                    //begin of track
-                    var track = new Track({
-                        begin:{
-                            lat:data.lat,
-                            lng:data.lng,
-                            time:data.timestamp},
-                        active:true
-                    });
-                    track.save(function (err, tr) {
-                        if(err) throw err;
-                        console.log('Save begin track = ', tr._id);
-                        var beginTrackData = ['isActive', true, 'timestamp', data.timestamp, 'id', tr._id];
-                        clientRedis.hmset(key, beginTrackData, function (err, resultSaving) {
-                            console.log('resultSaving = ', resultSaving);
-                            //
-                        });
-                    });
-                }
-            });
             var point = new Point(req.query);
             point.save(function(err){
                 if(err) throw err;
